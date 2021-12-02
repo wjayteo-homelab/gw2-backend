@@ -1,0 +1,53 @@
+name: Deploy to DO
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+  
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}:latest
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      - name: SSH Remote Commands
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          passphrase: ${{ secrets.SSH_PASS }}
+          script: |
+            docker login --username ${{ secrets.DOCKER_USER }} --password-stdin < ${{ secrets.DOCKER_SECRETS }}
+            docker stop ${{ secrets.DOCKER_IMAGE }}
+            docker rm ${{ secrets.DOCKER_IMAGE }}
+            docker rmi -f ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}
+            docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}
+            docker run -d -p 127.0.0.1:${{ secrets.DOCKER_PORT }}:${{ secrets.DOCKER_PORT }} --restart unless-stopped --name=${{ secrets.DOCKER_IMAGE }} ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}
