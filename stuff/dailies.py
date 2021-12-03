@@ -2,11 +2,11 @@ from bs4 import BeautifulSoup
 
 import stuff.network as network
 
-API_HEADERS = {"X-Schema-Version": "latest"}
-EASY_DAILIES = ["Forager", "Miner", "Lumberer", "Vista Viewer"]
-PVP_DAILIES = ["Top Stats", "Player Kills", "Rank Points", "Reward Earner"]
+API_HEADERS: dict = {"X-Schema-Version": "latest"}
+EASY_DAILIES: list = ["Forager", "Miner", "Lumberer", "Vista Viewer"]
+PVP_DAILIES: list = ["Top Stats", "Player Kills", "Rank Points", "Reward Earner"]
 
-BOUNTY_WAYPOINTS = {
+BOUNTY_WAYPOINTS: dict = {
     "Crystal Oasis": "[&BLsKAAA=]",
     "Desert Highlands": "[&BGsKAAA=]",
     "Elon Riverlands": "[&BCgKAAA=]",
@@ -70,12 +70,12 @@ def find_easy_waypoint(area: str, task: str, easy_table, map_data):
 
 async def parse_daily(name: str, easy_table, map_data) -> tuple:
     if name == "WvW Big Spender":
-        return name, "Spend Badges of Honor on traps / tricks / guild hall vendor."
+        return name, "Spend Badges of Honor on traps or at guild hall vendor."
 
-    if "PvP" in name:
+    if "PvP" in name or name == "Top Stats":
         task: str = name.replace("PvP", "").strip()
         if task in PVP_DAILIES:
-            return name, "Custom arena - [LOFT] / [TTS]"
+            return name, "Custom arena - [LOFT] or [TTS]"
         return None, None
 
     if "Bounty Hunter" in name:
