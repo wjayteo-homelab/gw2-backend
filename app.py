@@ -30,7 +30,7 @@ async def test():
 
 
 if __name__ == "__main__":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     print("Backend ready.")
     print()
     flask_app.run(host="0.0.0.0", port=5000)
