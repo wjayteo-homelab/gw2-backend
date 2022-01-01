@@ -102,7 +102,7 @@ async def parse_daily(name: str) -> tuple:
     if "PvP" in name or name == "Top Stats":
         task: str = name.replace("PvP", "").strip()
         if task in PVP_DAILIES:
-            return name, "Custom arena - [LOFT] or [TTS]"
+            return name, "PvP - Game Browser (last tab)"
         return None, None
 
     if "Bounty Hunter" in name:
