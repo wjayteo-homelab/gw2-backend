@@ -78,7 +78,7 @@ PSNA = [
 
 async def get_daily_ids() -> tuple:
     response: dict = await network.get_response(headers=API_HEADERS, url="https://api.guildwars2.com/v2/achievements/daily")
-    dailies: dict = response.get("pve") + response.get("wvw") + response.get("pvp")
+    dailies: dict = response.get("pve")
     daily_ids: str = ""
     daily_ids_core: str = ""
 
@@ -89,8 +89,18 @@ async def get_daily_ids() -> tuple:
         if required_access is None or required_access["condition"] == "HasAccess":
             if max_level == 80:
                 daily_ids += f"{str(daily['id'])},"
+            else:
+                daily_ids_core += f"{str(daily['id'])},"
         else:
             daily_ids_core += f"{str(daily['id'])},"
+
+    dailies: dict = response.get("wvw") + response.get("pvp")
+
+    for daily in dailies:
+        required_access = daily.get("required_access")
+
+        if required_access is None or required_access["condition"] == "HasAccess":
+            daily_ids += f"{str(daily['id'])},"
 
     return daily_ids, daily_ids_core
 
