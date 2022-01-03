@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import stuff.network as network
 
 API_HEADERS: dict = {"X-Schema-Version": "latest"}
-EASY_DAILIES: list = ["Forager", "Miner", "Lumberer", "Vista"]
+EASY_DAILIES: list = ["Forager", "Miner", "Lumberer", "Vista Viewer"]
 PVP_DAILIES: list = ["Top Stats", "Player Kills", "Rank Points", "Reward Earner"]
 
 BOUNTY_WAYPOINTS: dict = {
@@ -109,6 +109,9 @@ async def parse_daily(name: str) -> tuple:
     if name == "WvW Big Spender":
         return name, "Spend 30 Badges of Honor at guild hall vendor."
 
+    if "Mystic Forger" in name:
+        return name, "[&BBAEAAA=] - FREE 2 GOLD!"
+
     if "PvP" in name or name == "Top Stats":
         task: str = name.replace("PvP", "").strip()
         if task in PVP_DAILIES:
@@ -127,6 +130,9 @@ async def parse_daily(name: str) -> tuple:
 
     task: str = tasks[0]
     area: str = name.replace(task, "").strip()
+
+    if task == "Vista Viewer":
+        task = "Vista"
 
     try:
         waypoint = EASY_WAYPOINTS[area][task]
