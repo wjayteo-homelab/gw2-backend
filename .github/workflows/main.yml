@@ -1,4 +1,4 @@
-name: Deploy to DO
+name: Build and push Docker image
 
 on:
   push:
@@ -35,19 +35,3 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
-      - name: SSH Remote Commands
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          passphrase: ${{ secrets.SSH_PASS }}
-          script: |
-            docker login --username ${{ secrets.DOCKER_USER }} --password-stdin < ${{ secrets.DOCKER_SECRETS }}
-            docker stop ${{ secrets.DOCKER_IMAGE }}
-            docker rm ${{ secrets.DOCKER_IMAGE }}
-            docker rmi -f ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}
-            docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}
-            docker run -d -p 127.0.0.1:${{ secrets.DOCKER_PORT }}:${{ secrets.DOCKER_PORT }} --restart unless-stopped --name=${{ secrets.DOCKER_IMAGE }} ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_IMAGE }}

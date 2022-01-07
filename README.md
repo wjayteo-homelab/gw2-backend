@@ -1,3 +1,1 @@
-# WJ Backend
-
-Hello World.
+# GW2 Backend
