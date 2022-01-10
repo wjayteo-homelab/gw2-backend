@@ -131,6 +131,9 @@ async def parse_daily(name: str) -> tuple:
     task: str = tasks[0]
     area: str = name.replace(task, "").strip()
 
+    if area == "Maguuma":
+        area = "Maguuma Jungle"
+
     if task == "Vista Viewer":
         task = "Vista"
 
