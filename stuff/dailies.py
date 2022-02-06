@@ -14,6 +14,69 @@ BOUNTY_WAYPOINTS: dict = {
     "Vabbian": "[&BNAKAAA=]"
 }
 
+TASKMASTER_WAYPOINTS: dict = {
+    "Elon Riverlands": "[&BFMKAAA=] (Augury Rock hearts northwest are easier)",
+    "Desolation": "[&BNwKAAA=] or [&BHcKAAA=]",
+}
+
+MINIDUNGEON_WAYPOINTS: dict = {
+    "Bad Neighborhood": "[&BPkAAAA=] (northwest bandit cave)",
+    "Don't Touch the Shiny": "[&BDoBAAA=] (should wiki this on first try)",
+    "Forgotten Stream": "[&BBsDAAA=] (northeast, jump underwater then keep going NE)",
+    "Forsaken Fortune": "[&BGUCAAA=] (on a timer, just do with everyone else)",
+    "Goff's Loot": "[&BLoDAAA=] (north, at the end of bandit cave)",
+    "Grounded": "[&BOQGAAA=] (northwest grounded ship, keep going down the ship)",
+    "Magellan's Memento": "[&BHgCAAA=] (cave northeast beyond the grawls, hug the walls inside)",
+    "Rebel's Seclusion": "[&BBoCAAA=] (entrance northeast)",
+    "Ship of Sorrows": "[&BOACAAA=] (underwater ship west of POI, keep going down the ship)",
+    "Tears of Itlaoco": "[&BD4BAAA=] (should wiki this on first try)",
+    "The Long Way Around": "[&BPICAAA=] (should wiki this on first try)",
+    "Vexa's Lab": "[&BBoCAAA=] (should wiki this on first try)",
+    "Windy Cave Treasure": "[&BJkBAAA=] (southwest, mount through the start if possible)",
+}
+
+JP_WAYPOINTS: dict = {
+    "Antre of Adjournment": "[&BKoCAAA=]",
+    "Behem Gauntlet": "[&BP0BAAA=]",
+    "Branded Mine": "[&BNcAAAA=]",
+    "Buried Archives": "[&BCIDAAA=]",
+    "Chaos Crystal Cavern": "[&BOQBAAA=]",
+    "Coddler's Cove": "[&BEYCAAA=]",
+    "Collapsed Observatory": "[&BBIAAAA=]",
+    "Conundrum Cubed": "[&BMgCAAA=]",
+    "Crash Site": "[&BIAHAAA=]",
+    "Craze's Folly": "[&BAECAAA=]",
+    "Crimson Plateau": "[&BMYDAAA=]",
+    "Dark Reverie": "[&BDUBAAA=] or [&BEIBAAA=] (Skyscale skip)",
+    "Demongrub Pits": "[&BPwAAAA=] (can just mount through lol)",
+    "Fawcett's Bounty": "[&BLIAAAA=] (hard)",
+    "Goemm's Lab": "[&BLIEAAA=]",
+    "Grendich Gamble": "[&BNoAAAA=]",
+    "Griffonrook Run": "[&BOgAAAA=] or [&BJYBAAA=] (SS / Griffon skip)",
+    "Hexfoundry": "[&BM0BAAA=]",
+    "Hidden Garden": "[&BMkCAAA=], [&BM8CAAA=], [&BNECAAA=], [&BNICAAA=] (potential entrances, defeat keepers)",
+    "King Jalis's Refuge": "[&BLUAAAA=]",
+    "Loreclaw Expanse": "[&BMcDAAA=]",
+    "Morgan's Leap": "[&BDUBAAA=]",
+    "Only Zuhl": "[&BE4CAAA=]",
+    "Pig Iron Quarry": "[&BBcCAAA=]",
+    "Portmatt's Lab": "[&BKQBAAA=]",
+    "Scavenger's Chasm": "[&BKoCAAA=]",
+    "Shaman's Rookery": "[&BHcBAAA=]",
+    "Shattered Ice Ruins": "[&BH4CAAA=]",
+    "Skipping Stones": "[&BNAGAAA=]",
+    "Spekks's Lab": "[&BDcBAAA=]",
+    "Spelunker's Delve": "[&BP4FAAA=]",
+    "Swashbuckler's Cove": "[&BJEBAAA=]",
+    "Tribulation Caverns": "[&BD8FAAA=]",
+    "Tribulation Rift": "[&BD8FAAA=]",
+    "Under New Management": "[&BNUGAAA=]",
+    "Urmaug's Secret": "[&BA0EAAA=]",
+    "Vizier's Tower": "[&BPcCAAA=] or [&BPECAAA=] (safer Skyscale skip)",
+    "Wall Breach Blitz": "[&BGEBAAA=]",
+    "Weyandt's Revenge": "[&BDMEAAA=]",
+}
+
 EASY_WAYPOINTS = {
     "Ascalon": {
         "Forager": "[&BMcDAAA=] (South)",
@@ -76,9 +139,13 @@ PSNA = [
 ]
 
 
+dailies_cache: dict = {}
+dailies_tomorrow_time: datetime
+
+
 async def get_daily_ids() -> tuple:
     response: dict = await network.get_response(headers=API_HEADERS, url="https://api.guildwars2.com/v2/achievements/daily")
-    dailies: dict = response.get("pve")
+    dailies: dict = response.get("pve") + response.get("wvw") + response.get("pvp")
     daily_ids: str = ""
     daily_ids_core: str = ""
 
@@ -94,39 +161,52 @@ async def get_daily_ids() -> tuple:
         else:
             daily_ids_core += f"{str(daily['id'])},"
 
-    dailies: dict = response.get("wvw") + response.get("pvp")
-
-    for daily in dailies:
-        required_access = daily.get("required_access")
-
-        if required_access is None or required_access["condition"] == "HasAccess":
-            daily_ids += f"{str(daily['id'])},"
+    # for daily in dailies:
+    #     required_access = daily.get("required_access")
+    #
+    #     if required_access is None or required_access["condition"] == "HasAccess":
+    #         daily_ids += f"{str(daily['id'])},"
 
     return daily_ids, daily_ids_core
 
 
 async def parse_daily(name: str) -> tuple:
     if name == "WvW Big Spender":
-        return name, "Spend 30 Badges of Honor at guild hall vendor."
+        return name, "Spend 30 Badges of Honor at guild hall vendor.", True
 
     if "Mystic Forger" in name:
-        return name, "[&BBAEAAA=] - FREE 2 GOLD!"
+        return name, "[&BBAEAAA=] - FREE 2 GOLD!", False
 
     if "PvP" in name or name == "Top Stats":
         task: str = name.replace("PvP", "").strip()
         if task in PVP_DAILIES:
-            return name, "PvP - Game Browser (last tab)"
-        return None, None
+            return name, "", True
+        return None, None, None
 
     if "Bounty Hunter" in name:
         map_name: str = name.replace("Bounty Hunter", "").strip()
         waypoint = BOUNTY_WAYPOINTS.get(map_name)
-        return name, waypoint
+        return name, waypoint, False
+
+    if "Jumping Puzzle" in name:
+        jp_name: str = name.replace("Jumping Puzzle", "").strip()
+        waypoint = JP_WAYPOINTS.get(jp_name)
+        return name, waypoint, False
+
+    if "Minidungeon" in name:
+        md_name: str = name.replace("Minidungeon", "").strip()
+        waypoint = MINIDUNGEON_WAYPOINTS.get(md_name)
+        return name, waypoint, False
+
+    if "Taskmaster" in name:
+        map_name: str = name.replace("Taskmaster", "").strip()
+        waypoint = TASKMASTER_WAYPOINTS.get(map_name)
+        return name, waypoint, False
 
     tasks: list = [t for t in EASY_DAILIES if t in name]
 
     if len(tasks) < 1:
-        return None, None
+        return None, None, None
 
     task: str = tasks[0]
     area: str = name.replace(task, "").strip()
@@ -143,7 +223,7 @@ async def parse_daily(name: str) -> tuple:
         print(f"Invalid task or area: {task} {area}")
         waypoint = None
 
-    return name, waypoint
+    return name, waypoint, False
 
 
 def get_psna():
@@ -154,6 +234,21 @@ def get_psna():
 
 
 async def get_dailies() -> dict:
+    global dailies_tomorrow_time, dailies_cache
+    if len(dailies_cache) == 0 or dailies_tomorrow_time is None:
+        print("- Pulling dailies due to no cache...")
+        await pull_dailies()
+    elif datetime.now() >= dailies_tomorrow_time:
+        print("- Pulling dailies due to outdated cache...")
+        await pull_dailies()
+
+    ret: dict = dailies_cache
+    ret["psna"] = get_psna()
+    return ret
+
+
+async def pull_dailies():
+    global dailies_cache, dailies_tomorrow_time
     daily_ids, daily_ids_core = await get_daily_ids()
 
     urls: dict = {
@@ -164,22 +259,30 @@ async def get_dailies() -> dict:
     results: list = await network.get_responses(headers=API_HEADERS, urls=urls)
     dailies = results[0]
     dailies_core = results[1]
+    today = datetime.today()
+    dailies_tomorrow_time = today + timedelta(hours=16, minutes=0)
 
     ret: dict = {}
     ret_core: dict = {}
+    ret_pvp: list = []
 
     for daily in dailies:
         name: str = daily["name"].replace("Daily", "").strip()
-        key, value = await parse_daily(name)
+        key, value, is_pvp = await parse_daily(name)
+
+        if is_pvp:
+            if key is not None:
+                ret_pvp.append(key)
+            continue
 
         if key is not None and value is not None:
             ret[key] = value
 
     for daily in dailies_core:
         name: str = daily["name"].replace("Daily", "").strip()
-        key, value = await parse_daily(name)
+        key, value, is_pvp = await parse_daily(name)
 
         if key is not None and value is not None:
             ret_core[key] = value
 
-    return {"dailies": [ret, ret_core], "psna": get_psna()}
+    dailies_cache = {"dailies": [ret, ret_core, ret_pvp]}
