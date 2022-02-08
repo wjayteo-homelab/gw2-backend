@@ -121,7 +121,7 @@ EASY_WAYPOINTS = {
         "Vista": "[&BOAHAAA=], [&BGwIAAA=] (West)",
     },
     "Desert": {
-        "Forager": "",
+        "Forager": "[&BEMLAAA=], [&BEAKAAA=] (North), [&BJEKAAA=] (North, @ waterfall)",
         "Lumberer": "[&BJ0KAAA=]",
         "Miner": "Griffon Sanctuary, [&BFMKAAA=] (East, destroy Brand Battleshards)",
         "Vista": "Griffon Sanctuary, [&BLsKAAA=], [&BEAKAAA=]",
@@ -259,8 +259,11 @@ async def pull_dailies():
     results: list = await network.get_responses(headers=API_HEADERS, urls=urls)
     dailies = results[0]
     dailies_core = results[1]
-    today = datetime.today()
-    dailies_tomorrow_time = today + timedelta(hours=16, minutes=0)
+    today = datetime.today() - timedelta(hours=8, minutes=0)
+    tomorrow = today.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=32, minutes=0)
+    dailies_tomorrow_time = tomorrow
+    print(dailies_tomorrow_time)
+    print(datetime.now())
 
     ret: dict = {}
     ret_core: dict = {}
