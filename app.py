@@ -21,12 +21,16 @@ def home():
 
 @flask_app.route("/dailies", methods=["GET"])
 async def test():
-    try:
-        result: dict = await dailies.get_dailies()
-        return make_response(result, 200)
-    except Exception as e:
-        flask_app.logger.error(f"Error while getting dailies: {e}")
-        return make_response({ERROR_KEY: "Unable to retrieve dailies."}, 500)
+    tries: int = 0
+
+    while tries < 3:
+        try:
+            result: dict = await dailies.get_dailies()
+            return make_response(result, 200)
+        except Exception as e:
+            flask_app.logger.error(f"{e}")
+            tries += 1
+    return make_response({ERROR_KEY: "Unable to retrieve dailies."}, 500)
 
 
 if __name__ == "__main__":

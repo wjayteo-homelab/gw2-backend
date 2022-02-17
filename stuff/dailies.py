@@ -261,9 +261,6 @@ async def pull_dailies():
     dailies_core = results[1]
     today = datetime.today() - timedelta(hours=8, minutes=0)
     tomorrow = today.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=32, minutes=0)
-    dailies_tomorrow_time = tomorrow
-    print(dailies_tomorrow_time)
-    print(datetime.now())
 
     ret: dict = {}
     ret_core: dict = {}
@@ -289,3 +286,4 @@ async def pull_dailies():
             ret_core[key] = value
 
     dailies_cache = {"dailies": [ret, ret_core, ret_pvp]}
+    dailies_tomorrow_time = tomorrow
