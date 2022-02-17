@@ -141,6 +141,13 @@ PSNA = [
 
 dailies_cache: dict = {}
 dailies_tomorrow_time: datetime
+max_level_only: bool = True
+
+
+def toggle_max_level_only():
+    global max_level_only
+    max_level_only = not max_level_only
+    print(max_level_only)
 
 
 async def get_daily_ids() -> tuple:
@@ -157,9 +164,12 @@ async def get_daily_ids() -> tuple:
             if max_level == 80:
                 daily_ids += f"{str(daily['id'])},"
             else:
+                if max_level_only:
+                    continue
                 daily_ids_core += f"{str(daily['id'])},"
         else:
-            daily_ids_core += f"{str(daily['id'])},"
+            if max_level == 80 or not max_level_only:
+                daily_ids_core += f"{str(daily['id'])},"
 
     # for daily in dailies:
     #     required_access = daily.get("required_access")
@@ -248,7 +258,7 @@ async def get_dailies() -> dict:
 
 
 async def pull_dailies():
-    global dailies_cache, dailies_tomorrow_time
+    global dailies_cache, dailies_tomorrow_time, max_level_only
     daily_ids, daily_ids_core = await get_daily_ids()
 
     urls: dict = {
@@ -285,5 +295,5 @@ async def pull_dailies():
         if key is not None and value is not None:
             ret_core[key] = value
 
-    dailies_cache = {"dailies": [ret, ret_core, ret_pvp]}
+    dailies_cache = {"dailies": [ret, ret_core, ret_pvp], "max_level": max_level_only}
     dailies_tomorrow_time = tomorrow

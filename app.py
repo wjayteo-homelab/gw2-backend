@@ -33,6 +33,12 @@ async def test():
     return make_response({ERROR_KEY: "Unable to retrieve dailies."}, 500)
 
 
+@flask_app.route("/togglemax", methods=["GET"])
+def toggle_max():
+    dailies.toggle_max_level_only()
+    return make_response({}, 200)
+
+
 if __name__ == "__main__":
     # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     print("Backend ready.")
