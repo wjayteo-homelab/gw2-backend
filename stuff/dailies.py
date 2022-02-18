@@ -29,7 +29,7 @@ MINIDUNGEON_WAYPOINTS: dict = {
     "Magellan's Memento": "[&BHgCAAA=] (cave northeast beyond the grawls, hug the walls inside)",
     "Rebel's Seclusion": "[&BBoCAAA=] (entrance northeast)",
     "Ship of Sorrows": "[&BOACAAA=] (underwater ship west of POI, keep going down the ship)",
-    "Tears of Itlaoco": "[&BD4BAAA=] (should wiki this on first try)",
+    "Tears of Itlaocol": "[&BD4BAAA=] (should wiki this on first try)",
     "The Long Way Around": "[&BPICAAA=] (should wiki this on first try)",
     "Vexa's Lab": "[&BBoCAAA=] (should wiki this on first try)",
     "Windy Cave Treasure": "[&BJkBAAA=] (southwest, mount through the start if possible)",
@@ -263,37 +263,43 @@ async def pull_dailies():
 
     urls: dict = {
         f"https://api.guildwars2.com/v2/achievements?ids={daily_ids[:-1]}": True,
-        f"https://api.guildwars2.com/v2/achievements?ids={daily_ids_core[:-1]}": True,
     }
 
+    if len(daily_ids_core) > 0:
+        urls[f"https://api.guildwars2.com/v2/achievements?ids={daily_ids_core[:-1]}"]: True
+
     results: list = await network.get_responses(headers=API_HEADERS, urls=urls)
-    dailies = results[0]
-    dailies_core = results[1]
     today = datetime.today() - timedelta(hours=8, minutes=0)
     tomorrow = today.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=32, minutes=0)
 
     ret: dict = {}
     ret_core: dict = {}
     ret_pvp: list = []
+    dailies = results[0]
 
-    for daily in dailies:
-        name: str = daily["name"].replace("Daily", "").strip()
-        key, value, is_pvp = await parse_daily(name)
+    if dailies is not None:
+        for daily in dailies:
+            name: str = daily["name"].replace("Daily", "").strip()
+            key, value, is_pvp = await parse_daily(name)
 
-        if is_pvp:
-            if key is not None:
-                ret_pvp.append(key)
-            continue
+            if is_pvp:
+                if key is not None:
+                    ret_pvp.append(key)
+                continue
 
-        if key is not None and value is not None:
-            ret[key] = value
+            if key is not None and value is not None:
+                ret[key] = value
 
-    for daily in dailies_core:
-        name: str = daily["name"].replace("Daily", "").strip()
-        key, value, is_pvp = await parse_daily(name)
+    if len(results) == 2:
+        dailies_core = results[1]
 
-        if key is not None and value is not None:
-            ret_core[key] = value
+        if dailies_core is not None:
+            for daily in dailies_core:
+                name: str = daily["name"].replace("Daily", "").strip()
+                key, value, is_pvp = await parse_daily(name)
+
+                if key is not None and value is not None:
+                    ret_core[key] = value
 
     dailies_cache = {"dailies": [ret, ret_core, ret_pvp], "max_level": max_level_only}
     dailies_tomorrow_time = tomorrow
